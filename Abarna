@@ -1,0 +1,228 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Feedback {
+    int studentID;
+    char courseCode[20];
+    int rating;
+    char comments[100];
+    struct Feedback *next;
+} Feedback;
+
+Feedback* head = NULL;
+
+void addFeedback();
+void displayFeedback(Feedback *head);
+void searchFeedbackByStudent();
+void searchFeedbackByCourse();
+void averageRatingByCourse();
+void reverseDisplay(Feedback *node);
+Feedback* cloneFeedbackList(Feedback *head);
+
+int main() {
+    int choice;
+    while (1) {
+        printf("\n====== Student Feedback Tracking System ======\n");
+        printf("1. Add Feedback\n");
+        printf("2. Display All Feedback\n");
+        printf("3. Search Feedback by Student ID\n");
+        printf("4. Search Feedback by Course Code\n");
+        printf("5. Calculate Average Rating per Course\n");
+        printf("6. Reverse Feedback Display\n");
+        printf("7. Clone Feedback Data for Reporting\n");
+        printf("8. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar(); // to clear newline
+
+        switch (choice) {
+            case 1:
+                addFeedback();
+                break;
+            case 2:
+                displayFeedback(head);
+                break;
+            case 3:
+                searchFeedbackByStudent();
+                break;
+            case 4:
+                searchFeedbackByCourse();
+                break;
+            case 5:
+                averageRatingByCourse();
+                break;
+            case 6:
+                printf("\n--- Reversed Feedback Display ---\n");
+                reverseDisplay(head);
+                printf("\n");
+                break;
+            case 7: {
+                Feedback *clone = cloneFeedbackList(head);
+                printf("\n--- Cloned Feedback Data ---\n");
+                displayFeedback(clone);
+                break;
+            }
+            case 8:
+                printf("Exiting... Thank you!\n");
+                exit(0);
+            default:
+                printf("Invalid choice! Try again.\n");
+        }
+    }
+    return 0;
+}
+
+
+void addFeedback() {
+    Feedback *newNode = (Feedback*)malloc(sizeof(Feedback));
+
+    printf("Enter Student ID: ");
+    scanf("%d", &newNode->studentID);
+    getchar();
+
+    printf("Enter Course Code: ");
+    fgets(newNode->courseCode, sizeof(newNode->courseCode), stdin);
+    newNode->courseCode[strcspn(newNode->courseCode, "\n")] = '\0';
+
+    printf("Enter Feedback Rating (1-5): ");
+    scanf("%d", &newNode->rating);
+    getchar();
+
+    printf("Enter Comments: ");
+    fgets(newNode->comments, sizeof(newNode->comments), stdin);
+    newNode->comments[strcspn(newNode->comments, "\n")] = '\0';
+
+    newNode->next = NULL;
+
+    if (head == NULL) {
+        head = newNode;
+    } else {
+        Feedback *temp = head;
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = newNode;
+    }
+
+    printf("\nFeedback added successfully!\n");
+}
+
+
+void displayFeedback(Feedback *node) {
+    if (node == NULL) {
+        printf("No feedback records found.\n");
+        return;
+    }
+
+    printf("\n--- Feedback Records ---\n");
+    while (node != NULL) {
+        printf("\nStudent ID: %d", node->studentID);
+        printf("\nCourse Code: %s", node->courseCode);
+        printf("\nRating: %d", node->rating);
+        printf("\nComments: %s\n", node->comments);
+        node = node->next;
+    }
+}
+
+
+void searchFeedbackByStudent() {
+    int id;
+    printf("Enter Student ID to search: ");
+    scanf("%d", &id);
+
+    Feedback *temp = head;
+    int found = 0;
+    while (temp != NULL) {
+        if (temp->studentID == id) {
+            printf("\nFound Feedback:");
+            printf("\nCourse Code: %s", temp->courseCode);
+            printf("\nRating: %d", temp->rating);
+            printf("\nComments: %s\n", temp->comments);
+            found = 1;
+        }
+        temp = temp->next;
+    }
+
+    if (!found)
+        printf("No feedback found for Student ID %d.\n", id);
+}
+
+
+void searchFeedbackByCourse() {
+    char code[20];
+    printf("Enter Course Code to search: ");
+    scanf("%s", code);
+
+    Feedback *temp = head;
+    int found = 0;
+    while (temp != NULL) {
+        if (strcmp(temp->courseCode, code) == 0) {
+            printf("\nFound Feedback:");
+            printf("\nStudent ID: %d", temp->studentID);
+            printf("\nRating: %d", temp->rating);
+            printf("\nComments: %s\n", temp->comments);
+            found = 1;
+        }
+        temp = temp->next;
+    }
+
+    if (!found)
+        printf("No feedback found for Course Code %s.\n", code);
+}
+
+
+void averageRatingByCourse() {
+    char code[20];
+    printf("Enter Course Code to calculate average rating: ");
+    scanf("%s", code);
+
+    Feedback *temp = head;
+    int sum = 0, count = 0;
+
+    while (temp != NULL) {
+        if (strcmp(temp->courseCode, code) == 0) {
+            sum += temp->rating;
+            count++;
+        }
+        temp = temp->next;
+    }
+
+    if (count == 0)
+        printf("No feedback found for course %s.\n", code);
+    else
+        printf("Average rating for course %s = %.2f\n", code, (float)sum / count);
+}
+
+void reverseDisplay(Feedback *node) {
+    if (node == NULL)
+        return;
+    reverseDisplay(node->next);
+    printf("\nStudent ID: %d", node->studentID);
+    printf("\nCourse Code: %s", node->courseCode);
+    printf("\nRating: %d", node->rating);
+    printf("\nComments: %s\n", node->comments);
+}
+
+
+Feedback* cloneFeedbackList(Feedback *head) {
+    if (head == NULL)
+        return NULL;
+
+    Feedback *cloneHead = NULL, *cloneTail = NULL;
+    Feedback *temp = head;
+
+    while (temp != NULL) {
+        Feedback *newNode = (Feedback*)malloc(sizeof(Feedback));
+        *newNode = *temp; // copy struct content
+        newNode->next = NULL;
+
+        if (cloneHead == NULL)
+            cloneHead = cloneTail = newNode;
+        else {
+            cloneTail->next = newNode;
+            cloneTail = newNode;
+        }
+        temp = temp->next;
+    }
+    return cloneHead;
+}
